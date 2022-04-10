@@ -4,6 +4,8 @@
 # Do not share these assignments or their solutions outside of this class.
 
 import math
+from random import sample
+import heapq
 
 # unique takes an iterable and returns
 # - a set of each unique item from that iterable
@@ -41,6 +43,7 @@ def calc_entropy(classifications):
 
 
     for i in cset:
+        
         thecount[i] = [0,0] # creates row
 
         for j in classifications: #loops to add the frequency of occurances
@@ -49,13 +52,18 @@ def calc_entropy(classifications):
 
         thecount[i][1] =  thecount[i][0]/totaln #calculates proabability of occurance for thecount[i]
 
-
-    p = thecount[1][1]
-    notp = 1 - p
-
-    entropy  = (p* math.log(1/p,2)) + (notp * math.log(1/notp,2))
-
+    # print(thecount)
+    entropy = 0
+    for i in thecount:
+        entropy += thecount[i][1]*math.log(1/thecount[i][1],2)
     return entropy
+
+    # p = thecount[1][1]
+    # notp = 1 - p
+
+    # entropy  = (p* math.log(1/p,2)) + (notp * math.log(1/notp,2))
+
+    # return entropy
 
 
 ##################################################
@@ -92,16 +100,21 @@ def calc_information_gain(parent_classifications, classifications_by_val, val_fr
 
 
     n = len(parent_classifications)
-
-    p1 = val_freqs[1]/n
-    p2 = val_freqs[2]/n
+    # p1 = val_freqs[1]/n
+    # p2 = val_freqs[2]/n
     parent_entropy = calc_entropy(parent_classifications)
-    entropy1 = calc_entropy(classifications_by_val[1])
-    entropy2 = calc_entropy(classifications_by_val[2]) 
+    # entropy1 = calc_entropy(classifications_by_val[1])
+    # entropy2 = calc_entropy(classifications_by_val[2]) 
+    # entropy1 = 0
+    for i in classifications_by_val:
+        entropy1 = calc_entropy(classifications_by_val[i])
+        entropy1 = entropy1 * (val_freqs[i]/n)
+        parent_entropy -= entropy1
 
-
-    inf_gain  = p1*(parent_entropy - entropy1) + p2* (parent_entropy - entropy2)
-    return inf_gain
+    # inf_gain  = p1*(parent_entropy - entropy1) + p2* (parent_entropy - entropy2)
+    # inf_gain = parent_entropy - entropy1
+    return parent_entropy
+    
 
 
 ##################################################
@@ -261,13 +274,17 @@ class KNN_Classifier:
         calcualates euclidean distance of 2 points. 
         expectation is in form point1 = (x,y)
         """
-        x1 = point1[0]
-        y1 = point1[1]
+        # x1 = point1[0]
+        # y1 = point1[1]
 
-        x2 = point2[0]
-        y2 = point2[1]
+        # x2 = point2[0]
+        # y2 = point2[1]
+        sums = 0
+        for x1,x2 in zip(point1, point2):
+            sums+= ((x1-x2)**2)
 
-        return ((x2-x1)**2) + ((y2-y1)**2)
+
+        return math.sqrt(sums)
 
 
     ##################################################
@@ -275,10 +292,9 @@ class KNN_Classifier:
     ##################################################
     # Objective: Choose the most frequent label out of the labels for the k nearest neighbors
     def pick_label(self, top_k_labels):
-
-
-        raise NotImplementedError
-
+        unique_values, counts = unique(top_k_labels)
+        max_count = max(counts)
+        return unique_values[counts.index(max_count)]
     ##################################################
     # Problem 3c- Classify
     ##################################################
@@ -288,11 +304,24 @@ class KNN_Classifier:
     #  - sample_points and sample_labels correspond with each other
     #  - you may find heappush/pop to be useful to keep track of the k closet neighbors here
     def classify(self, point, sample_points, sample_labels):
-        raise NotImplementedError
+
+        distances = []
+
+        for x in range(len(sample_points)):
+            heapq.heappush(distances, (self.euclidean_distance(point, sample_points[x]), sample_labels[x]))
+            # distances.append([self.euclidean_distance(sample_points[x], point), sample_labels[x]])
+        # distances.sort(key=lambda x: x[0])
 
 
+        top_labels = []
+        for i in range(self.k):
+            top_labels.append(heapq.heappop(distances)[1])
 
-
-if __name__ == '__main__':
-
-    print("boo")
+        return self.pick_label(top_labels)
+        
+  
+if __name__ == "__main__":
+    classi = [1, 1, 1, 2, 2, 2, 2, 2]
+    test1 = [classi[i] for i in (0, 1, 3)]
+    print(test1)
+    print(calc_entropy(test1))
