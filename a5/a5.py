@@ -4,6 +4,7 @@
 # Do not share these assignments or their solutions outside of this class.
 
 import math
+from pickle import TRUE
 from random import sample
 import heapq
 
@@ -178,17 +179,21 @@ class Node:
     # a point is a dictionary of each attribute for the point mapped to the attribute's value
 
     def classify(self, point):
-        # If the node has a classification, return the classification
+          # If the node has a classification, return the classification
         if (self.classification != None):
             return self.classification
         else:
-            # Check if the value maps to a child node
-            for selectedPoint in point:
-                if(self.children.get(point.get(selectedPoint)) != None):
-                    x = self.children.get(point.get(selectedPoint))
-                    return Node.classify(x, point)
-            # Otherwise get the child node to other
-            return self.children.get(OTHER).classification
+            # Get the value of the node's attribute at the point
+            value = point.get(self.attribute)
+            #If the value maps to one of the node's child nodes
+            if(value in self.children):
+                # Get the child node corresponding to the value
+                child = self.children.get(value)
+                # Call the appopriate classify method
+                return Node.classify(child, point)
+            # Otherwise get the child node corresponding to other
+            else:
+                return Node.classify(self.children.get(OTHER), point)
 
 
 
